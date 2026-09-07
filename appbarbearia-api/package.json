@@ -5,6 +5,7 @@
   "scripts": {
     "build": "nest build",
     "postbuild": "node scripts/verify-build.cjs",
+    "test:startup": "npm run build && node scripts/check-startup.cjs",
     "start": "node dist/main.js",
     "start:dev": "nest start --watch",
     "prisma:generate": "prisma generate",
