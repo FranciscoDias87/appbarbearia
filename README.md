@@ -31,21 +31,21 @@ O Supabase é utilizado como provedor do banco PostgreSQL. O cadastro e o login 
 
 ```text
 appbarbearia/
-├── src/
-│   ├── app/                    # Páginas, layouts e rotas do frontend
-│   ├── components/             # Componentes compartilhados
-│   └── lib/                    # Cliente HTTP, sessão e tipos
+├── frontend/
+│   ├── src/app/                # Páginas, layouts e rotas do frontend
+│   ├── src/components/         # Componentes compartilhados
+│   ├── src/lib/                # Cliente HTTP, sessão e tipos
+│   ├── .env.example
+│   └── package.json
 ├── appbarbearia-api/
 │   ├── src/                    # Módulos e endpoints NestJS
 │   ├── prisma/                 # Modelo de dados, seed e índice SQL
 │   ├── .env.example            # Configuração de referência da API
 │   └── package.json
-├── .env.example                # Configuração de referência do frontend
-├── package.json
 └── README.md
 ```
 
-O frontend fica na raiz; o backend, em `appbarbearia-api`. Cada um possui suas próprias dependências e deve ser executado em um terminal separado.
+O frontend fica em `frontend`; o backend, em `appbarbearia-api`. Cada aplicação possui suas próprias dependências e configuração TypeScript. A raiz do repositório não é uma aplicação Node.js.
 
 ## Pré-requisitos
 
@@ -113,6 +113,7 @@ Verifique a API em [http://localhost:3001/api/v1/health](http://localhost:3001/a
 Em um segundo terminal, na raiz do projeto:
 
 ```powershell
+cd frontend
 Copy-Item .env.example .env.local
 npm install
 npm run dev
@@ -148,7 +149,7 @@ Use sessões de navegador separadas para testar diferentes perfis simultaneament
 
 ## Integração e organização dos dados
 
-A API usa o prefixo `/api/v1`. O cliente HTTP do frontend está em `src/lib/api.ts`, e os tipos da interface estão em `src/lib/types.ts`.
+A API usa o prefixo `/api/v1`. O cliente HTTP do frontend está em `frontend/src/lib/api.ts`, e os tipos da interface estão em `frontend/src/lib/types.ts`.
 
 | Grupo | Responsabilidade |
 | --- | --- |
@@ -164,7 +165,7 @@ O backend obtém o `barbershopId` da sessão autenticada para filtrar os dados. 
 
 ## Verificação de compilação
 
-Na raiz do projeto:
+No diretório `frontend`:
 
 ```powershell
 npm run build
@@ -178,6 +179,46 @@ npm run build
 ```
 
 Após uma compilação bem-sucedida, `npm run start` inicia cada aplicação no seu respectivo diretório. A compilação não substitui os testes dos fluxos com banco e API ativos.
+
+## Publicação: Vercel + Render + Supabase
+
+### Frontend na Vercel
+
+Importe o repositório e configure o projeto existente ou novo:
+
+| Configuração | Valor |
+| --- | --- |
+| Root Directory | `frontend` |
+| Framework Preset | Next.js |
+| Install Command | `npm ci` |
+| Build Command | `npm run build` |
+| Output Directory | Padrão do Next.js |
+
+Desative **Include source files outside of the Root Directory in the Build Step**. Assim, o backend permanece fora do escopo da aplicação publicada. O arquivo `frontend/vercel.json` configura os comandos, mas o **Root Directory precisa ser definido no painel da Vercel**.
+
+Cadastre `NEXT_PUBLIC_API_URL=https://SEU-BACKEND.onrender.com/api/v1` e faça um novo deploy. Essa variável é incorporada ao build do frontend. Não use `localhost` no ambiente publicado.
+
+Referência: [monorepos na Vercel](https://vercel.com/docs/monorepos/monorepo-faq).
+
+### Backend no Render
+
+Crie um **Web Service** conectado ao mesmo repositório:
+
+| Configuração | Valor |
+| --- | --- |
+| Runtime | Node |
+| Root Directory | `appbarbearia-api` |
+| Build Command | `npm install --include=dev && npm run prisma:generate && npm run build` |
+| Start Command | `npm run start` |
+| Health Check Path | `/api/v1/health` |
+
+Configure `DATABASE_URL`, `DIRECT_URL`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `NODE_ENV=production` e `FRONTEND_URL=https://SEU-FRONTEND.vercel.app`. Use segredos próprios e mantenha o banco no Supabase. A API já lê a variável `PORT`, fornecida pela hospedagem.
+
+Prepare as tabelas antes de iniciar a aplicação. Não execute `prisma migrate dev` automaticamente no build de produção: gere e versione as migrations em desenvolvimento e aplique-as com `prisma migrate deploy` no processo de publicação. O índice de `prisma/tenant-index.sql` também deve ser aplicado; ele ainda não está incluído em uma migration. O seed atual cria uma senha administrativa conhecida e não deve ser executado automaticamente em produção.
+
+O repositório ainda precisa passar pela validação de compilação de ambas as aplicações. A reorganização resolve a inclusão indevida do backend no build do frontend, mas não garante ausência de outros erros de código.
+
+Referência: [Web Services no Render](https://render.com/docs/web-services).
 
 ## Limitações atuais
 

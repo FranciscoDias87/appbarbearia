@@ -7,6 +7,9 @@ dist/
 # Local configuration and secrets
 .env
 .env.local
+.env.*.local
+*.tsbuildinfo
+.vercel/
 appbarbearia-api/.env
 
 # Local project reference material
