@@ -1,0 +1,17 @@
+# Dependencies and build output
+node_modules/
+.next/
+.npm-cache/
+dist/
+
+# Local configuration and secrets
+.env
+.env.local
+appbarbearia-api/.env
+
+# Local project reference material
+sources/
+
+# System files
+.DS_Store
+Thumbs.db
