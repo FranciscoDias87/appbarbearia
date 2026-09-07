@@ -1,4 +1,111 @@
-'use client';
-import { FormEvent, useEffect, useState } from 'react';
-import { AppShell } from '@/components/app-shell'; import { Protected } from '@/components/protected'; import { api } from '@/lib/api'; import { Service } from '@/lib/types';
-export default function ServicesAdmin() { const [services, setServices] = useState<Service[]>([]); const [message, setMessage] = useState(''); const [busy, setBusy] = useState(false); const load = () => api.services().then(setServices).catch(e => setMessage(e.message)); useEffect(() => { void load(); }, []); async function submit(e: FormEvent<HTMLFormElement>) { e.preventDefault(); const data = Object.fromEntries(new FormData(e.currentTarget)); setBusy(true); setMessage(''); try { await api.createService({ name: String(data.name), description: String(data.description || ''), duration: Number(data.duration), price: Number(data.price) }); e.currentTarget.reset(); load(); setMessage('Serviço criado com sucesso.'); } catch (error) { setMessage((error as { message: string }).message); } finally { setBusy(false); } } return <Protected roles={['ADMIN']}><AppShell><div className="grid gap-6 lg:grid-cols-[.9fr_1.1fr]"><section><h2 className="text-xl font-bold">Serviços</h2><p className="mb-5 text-stone-500">Monte o catálogo que os clientes poderão agendar.</p><form className="card space-y-4" onSubmit={submit}>{message && <p className="rounded-lg bg-stone-100 p-3 text-sm">{message}</p>}<label className="label">Nome<input name="name" required placeholder="Ex.: Corte masculino" /></label><label className="label">Descrição <span className="font-normal text-stone-400">(opcional)</span><input name="description" placeholder="Uma breve descrição" /></label><div className="grid grid-cols-2 gap-3"><label className="label">Duração (min)<input name="duration" type="number" min="1" required /></label><label className="label">Preço (R$)<input name="price" type="number" min="0" step="0.01" required /></label></div><button className="button w-full" disabled={busy}>{busy ? 'Salvando...' : 'Adicionar serviço'}</button></form></section><section><h3 className="mb-4 font-bold">Catálogo atual</h3><div className="space-y-3">{services.length ? services.map(service => <article className="card" key={service.id}><p className="font-semibold">{service.name}</p><p className="text-sm text-stone-500">{service.duration} min · R$ {Number(service.price).toFixed(2)}</p></article>) : <div className="card text-stone-500">Nenhum serviço cadastrado.</div>}</div></section></div></AppShell></Protected>; }
+"use client";
+import { FormEvent, useEffect, useState } from "react";
+import { AppShell } from "@/components/app-shell";
+import { Protected } from "@/components/protected";
+import { api } from "@/lib/api";
+import { Service } from "@/lib/types";
+export default function ServicesAdmin() {
+  const [services, setServices] = useState<Service[]>([]);
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+  const load = () =>
+    api
+      .services()
+      .then(setServices)
+      .catch((e) => setMessage(e.message));
+  useEffect(() => {
+    void load();
+  }, []);
+  async function submit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(e.currentTarget));
+    setBusy(true);
+    setMessage("");
+    try {
+      await api.createService({
+        name: String(data.name),
+        description: String(data.description || ""),
+        duration: Number(data.duration),
+        price: Number(data.price),
+      });
+      e.currentTarget.reset();
+      load();
+      setMessage("Serviço criado com sucesso.");
+    } catch (error) {
+      setMessage((error as { message: string }).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <Protected roles={["ADMIN"]}>
+      <AppShell>
+        <div className="grid gap-6 lg:grid-cols-[.9fr_1.1fr]">
+          <section>
+            <h2 className="text-xl font-bold">Serviços</h2>
+            <p className="mb-5 text-stone-500">
+              Monte o catálogo que os clientes poderão agendar.
+            </p>
+            <form className="card space-y-4" onSubmit={submit}>
+              {message && (
+                <p className="rounded-lg bg-stone-100 p-3 text-sm">{message}</p>
+              )}
+              <label className="label">
+                Nome
+                <input
+                  name="name"
+                  required
+                  placeholder="Ex.: Corte masculino"
+                />
+              </label>
+              <label className="label">
+                Descrição{" "}
+                <span className="font-normal text-stone-400">(opcional)</span>
+                <input name="description" placeholder="Uma breve descrição" />
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <label className="label">
+                  Duração (min)
+                  <input name="duration" type="number" min="1" required />
+                </label>
+                <label className="label">
+                  Preço (R$)
+                  <input
+                    name="price"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    required
+                  />
+                </label>
+              </div>
+              <button className="button w-full" disabled={busy}>
+                {busy ? "Salvando..." : "Adicionar serviço"}
+              </button>
+            </form>
+          </section>
+          <section>
+            <h3 className="mb-4 font-bold">Catálogo atual</h3>
+            <div className="space-y-3">
+              {services.length ? (
+                services.map((service) => (
+                  <article className="card" key={service.id}>
+                    <p className="font-semibold">{service.name}</p>
+                    <p className="text-sm text-stone-500">
+                      {service.duration} min · R${" "}
+                      {Number(service.price).toFixed(2)}
+                    </p>
+                  </article>
+                ))
+              ) : (
+                <div className="card text-stone-500">
+                  Nenhum serviço cadastrado.
+                </div>
+              )}
+            </div>
+          </section>
+        </div>
+      </AppShell>
+    </Protected>
+  );
+}

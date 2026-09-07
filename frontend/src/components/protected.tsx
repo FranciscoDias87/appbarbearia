@@ -1,3 +1,26 @@
-'use client';
-import { useEffect } from 'react'; import { useRouter } from 'next/navigation'; import { useAuth } from './auth-provider'; import { Role } from '@/lib/types';
-export function Protected({ roles, children }: { roles: Role[]; children: React.ReactNode }) { const { user, loading } = useAuth(); const router = useRouter(); useEffect(() => { if (!loading && (!user || !roles.includes(user.role))) router.replace(user ? `/${user.role.toLowerCase()}` : '/login'); }, [user, loading, roles, router]); if (loading || !user || !roles.includes(user.role)) return <div className="grid min-h-screen place-items-center text-stone-500">Carregando sua conta...</div>; return <>{children}</>; }
+"use client";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "./auth-provider";
+import { Role } from "@/lib/types";
+export function Protected({
+  roles,
+  children,
+}: {
+  roles: Role[];
+  children: React.ReactNode;
+}) {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+  useEffect(() => {
+    if (!loading && (!user || !roles.includes(user.role)))
+      router.replace(user ? `/${user.role.toLowerCase()}` : "/login");
+  }, [user, loading, roles, router]);
+  if (loading || !user || !roles.includes(user.role))
+    return (
+      <div className="grid min-h-screen place-items-center text-stone-500">
+        Carregando sua conta...
+      </div>
+    );
+  return <>{children}</>;
+}

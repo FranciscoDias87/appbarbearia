@@ -1,3 +1,62 @@
-'use client';
-import { useState } from 'react'; import { AppShell } from '@/components/app-shell'; import { Protected } from '@/components/protected'; import { api } from '@/lib/api';
-export default function Blocks() { const [message,setMessage]=useState(''); const [busy,setBusy]=useState(false); async function submit(e:React.FormEvent<HTMLFormElement>){e.preventDefault();const v=Object.fromEntries(new FormData(e.currentTarget));setBusy(true);try{await api.createBlock({date:String(v.date),startTime:String(v.startTime),endTime:String(v.endTime),reason:String(v.reason)});setMessage('Bloqueio criado com sucesso.');e.currentTarget.reset();}catch(err){setMessage((err as {message:string}).message)}finally{setBusy(false)}} return <Protected roles={['BARBER']}><AppShell><div className="max-w-xl"><h2 className="mb-6 text-xl font-bold">Bloquear horário</h2><form className="card space-y-4" onSubmit={submit}>{message&&<p className="rounded-lg bg-stone-100 p-3 text-sm">{message}</p>}<label className="label">Data<input name="date" type="date" required/></label><label className="label">Início<input name="startTime" type="time" required/></label><label className="label">Fim<input name="endTime" type="time" required/></label><label className="label">Motivo <span className="font-normal text-stone-400">(opcional)</span><input name="reason" placeholder="Ex.: compromisso pessoal"/></label><button className="button w-full" disabled={busy}>{busy?'Salvando...':'Bloquear agenda'}</button></form></div></AppShell></Protected>; }
+"use client";
+import { useState } from "react";
+import { AppShell } from "@/components/app-shell";
+import { Protected } from "@/components/protected";
+import { api } from "@/lib/api";
+export default function Blocks() {
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const v = Object.fromEntries(new FormData(e.currentTarget));
+    setBusy(true);
+    try {
+      await api.createBlock({
+        date: String(v.date),
+        startTime: String(v.startTime),
+        endTime: String(v.endTime),
+        reason: String(v.reason),
+      });
+      setMessage("Bloqueio criado com sucesso.");
+      e.currentTarget.reset();
+    } catch (err) {
+      setMessage((err as { message: string }).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <Protected roles={["BARBER"]}>
+      <AppShell>
+        <div className="max-w-xl">
+          <h2 className="mb-6 text-xl font-bold">Bloquear horário</h2>
+          <form className="card space-y-4" onSubmit={submit}>
+            {message && (
+              <p className="rounded-lg bg-stone-100 p-3 text-sm">{message}</p>
+            )}
+            <label className="label">
+              Data
+              <input name="date" type="date" required />
+            </label>
+            <label className="label">
+              Início
+              <input name="startTime" type="time" required />
+            </label>
+            <label className="label">
+              Fim
+              <input name="endTime" type="time" required />
+            </label>
+            <label className="label">
+              Motivo{" "}
+              <span className="font-normal text-stone-400">(opcional)</span>
+              <input name="reason" placeholder="Ex.: compromisso pessoal" />
+            </label>
+            <button className="button w-full" disabled={busy}>
+              {busy ? "Salvando..." : "Bloquear agenda"}
+            </button>
+          </form>
+        </div>
+      </AppShell>
+    </Protected>
+  );
+}

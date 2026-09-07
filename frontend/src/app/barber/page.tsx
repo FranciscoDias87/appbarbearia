@@ -1,3 +1,33 @@
-'use client';
-import { useEffect, useState } from 'react'; import { AppShell } from '@/components/app-shell'; import { Protected } from '@/components/protected'; import { AppointmentList } from '@/components/appointment-list'; import { api } from '@/lib/api'; import { Appointment, AppointmentStatus } from '@/lib/types';
-export default function BarberDashboard() { const [items,setItems]=useState<Appointment[]>([]); const load=()=>api.barberDashboard().then(result=>setItems(result.appointments)).catch(()=>{}); useEffect(() => { void load(); }, []); const update=async(id:string,status:AppointmentStatus)=>{await api.updateAppointment(id,status);load();}; return <Protected roles={['BARBER']}><AppShell><h2 className="mb-1 text-xl font-bold">Sua agenda</h2><p className="mb-6 text-stone-500">Acompanhe e atualize seus atendimentos.</p><AppointmentList appointments={items} onStatus={update}/></AppShell></Protected>; }
+"use client";
+import { useEffect, useState } from "react";
+import { AppShell } from "@/components/app-shell";
+import { Protected } from "@/components/protected";
+import { AppointmentList } from "@/components/appointment-list";
+import { api } from "@/lib/api";
+import { Appointment, AppointmentStatus } from "@/lib/types";
+export default function BarberDashboard() {
+  const [items, setItems] = useState<Appointment[]>([]);
+  const load = () =>
+    api
+      .barberDashboard()
+      .then((result) => setItems(result.appointments))
+      .catch(() => {});
+  useEffect(() => {
+    void load();
+  }, []);
+  const update = async (id: string, status: AppointmentStatus) => {
+    await api.updateAppointment(id, status);
+    load();
+  };
+  return (
+    <Protected roles={["BARBER"]}>
+      <AppShell>
+        <h2 className="mb-1 text-xl font-bold">Sua agenda</h2>
+        <p className="mb-6 text-stone-500">
+          Acompanhe e atualize seus atendimentos.
+        </p>
+        <AppointmentList appointments={items} onStatus={update} />
+      </AppShell>
+    </Protected>
+  );
+}

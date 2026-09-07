@@ -1,4 +1,144 @@
-'use client';
-import { FormEvent, useEffect, useState } from 'react';
-import { AppShell } from '@/components/app-shell'; import { Protected } from '@/components/protected'; import { api } from '@/lib/api'; import { Barber, Service } from '@/lib/types';
-export default function BarbersAdmin() { const [barbers, setBarbers] = useState<Barber[]>([]); const [services, setServices] = useState<Service[]>([]); const [message, setMessage] = useState(''); const [busy, setBusy] = useState(false); const load = () => Promise.all([api.barbers(), api.services()]).then(([b, s]) => { setBarbers(b); setServices(s); }).catch(e => setMessage(e.message)); useEffect(() => { void load(); }, []); async function create(e: FormEvent<HTMLFormElement>) { e.preventDefault(); const data = Object.fromEntries(new FormData(e.currentTarget)); setBusy(true); setMessage(''); try { await api.createBarber({ name: String(data.name), email: String(data.email), phone: String(data.phone || ''), password: String(data.password) }); e.currentTarget.reset(); load(); setMessage('Barbeiro cadastrado. Agora vincule os serviços e peça para ele configurar a agenda.'); } catch (error) { setMessage((error as { message: string }).message); } finally { setBusy(false); } } async function assign(e: FormEvent<HTMLFormElement>) { e.preventDefault(); const data = Object.fromEntries(new FormData(e.currentTarget)); try { await api.assignBarberService(String(data.barberId), String(data.serviceId)); setMessage('Serviço vinculado ao barbeiro.'); } catch (error) { setMessage((error as { message: string }).message); } } return <Protected roles={['ADMIN']}><AppShell><div className="grid gap-6 lg:grid-cols-2"><section><h2 className="text-xl font-bold">Barbeiros</h2><p className="mb-5 text-stone-500">Crie os acessos da equipe.</p><form className="card space-y-4" onSubmit={create}>{message && <p className="rounded-lg bg-stone-100 p-3 text-sm">{message}</p>}<label className="label">Nome<input name="name" required /></label><label className="label">E-mail<input name="email" type="email" required /></label><label className="label">Telefone <span className="font-normal text-stone-400">(opcional)</span><input name="phone" /></label><label className="label">Senha temporária<input name="password" type="password" minLength={8} required /></label><button className="button w-full" disabled={busy}>{busy ? 'Salvando...' : 'Cadastrar barbeiro'}</button></form></section><section><h3 className="mb-4 font-bold">Vincular serviço</h3><form className="card space-y-4" onSubmit={assign}><label className="label">Barbeiro<select name="barberId" required defaultValue=""><option value="" disabled>Selecione</option>{barbers.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}</select></label><label className="label">Serviço<select name="serviceId" required defaultValue=""><option value="" disabled>Selecione</option>{services.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></label><button className="button w-full">Vincular serviço</button></form><h3 className="mb-4 mt-6 font-bold">Equipe cadastrada</h3><div className="space-y-3">{barbers.length ? barbers.map(barber => <article className="card" key={barber.id}><p className="font-semibold">{barber.name}</p><p className="text-sm text-stone-500">{barber.phone || 'Sem telefone cadastrado'}</p></article>) : <div className="card text-stone-500">Nenhum barbeiro cadastrado.</div>}</div></section></div></AppShell></Protected>; }
+"use client";
+import { FormEvent, useEffect, useState } from "react";
+import { AppShell } from "@/components/app-shell";
+import { Protected } from "@/components/protected";
+import { api } from "@/lib/api";
+import { Barber, Service } from "@/lib/types";
+export default function BarbersAdmin() {
+  const [barbers, setBarbers] = useState<Barber[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+  const load = () =>
+    Promise.all([api.barbers(), api.services()])
+      .then(([b, s]) => {
+        setBarbers(b);
+        setServices(s);
+      })
+      .catch((e) => setMessage(e.message));
+  useEffect(() => {
+    void load();
+  }, []);
+  async function create(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(e.currentTarget));
+    setBusy(true);
+    setMessage("");
+    try {
+      await api.createBarber({
+        name: String(data.name),
+        email: String(data.email),
+        phone: String(data.phone || ""),
+        password: String(data.password),
+      });
+      e.currentTarget.reset();
+      load();
+      setMessage(
+        "Barbeiro cadastrado. Agora vincule os serviços e peça para ele configurar a agenda.",
+      );
+    } catch (error) {
+      setMessage((error as { message: string }).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function assign(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(e.currentTarget));
+    try {
+      await api.assignBarberService(
+        String(data.barberId),
+        String(data.serviceId),
+      );
+      setMessage("Serviço vinculado ao barbeiro.");
+    } catch (error) {
+      setMessage((error as { message: string }).message);
+    }
+  }
+  return (
+    <Protected roles={["ADMIN"]}>
+      <AppShell>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <section>
+            <h2 className="text-xl font-bold">Barbeiros</h2>
+            <p className="mb-5 text-stone-500">Crie os acessos da equipe.</p>
+            <form className="card space-y-4" onSubmit={create}>
+              {message && (
+                <p className="rounded-lg bg-stone-100 p-3 text-sm">{message}</p>
+              )}
+              <label className="label">
+                Nome
+                <input name="name" required />
+              </label>
+              <label className="label">
+                E-mail
+                <input name="email" type="email" required />
+              </label>
+              <label className="label">
+                Telefone{" "}
+                <span className="font-normal text-stone-400">(opcional)</span>
+                <input name="phone" />
+              </label>
+              <label className="label">
+                Senha temporária
+                <input name="password" type="password" minLength={8} required />
+              </label>
+              <button className="button w-full" disabled={busy}>
+                {busy ? "Salvando..." : "Cadastrar barbeiro"}
+              </button>
+            </form>
+          </section>
+          <section>
+            <h3 className="mb-4 font-bold">Vincular serviço</h3>
+            <form className="card space-y-4" onSubmit={assign}>
+              <label className="label">
+                Barbeiro
+                <select name="barberId" required defaultValue="">
+                  <option value="" disabled>
+                    Selecione
+                  </option>
+                  {barbers.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="label">
+                Serviço
+                <select name="serviceId" required defaultValue="">
+                  <option value="" disabled>
+                    Selecione
+                  </option>
+                  {services.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button className="button w-full">Vincular serviço</button>
+            </form>
+            <h3 className="mb-4 mt-6 font-bold">Equipe cadastrada</h3>
+            <div className="space-y-3">
+              {barbers.length ? (
+                barbers.map((barber) => (
+                  <article className="card" key={barber.id}>
+                    <p className="font-semibold">{barber.name}</p>
+                    <p className="text-sm text-stone-500">
+                      {barber.phone || "Sem telefone cadastrado"}
+                    </p>
+                  </article>
+                ))
+              ) : (
+                <div className="card text-stone-500">
+                  Nenhum barbeiro cadastrado.
+                </div>
+              )}
+            </div>
+          </section>
+        </div>
+      </AppShell>
+    </Protected>
+  );
+}

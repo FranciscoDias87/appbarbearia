@@ -1,3 +1,24 @@
-'use client';
-import { useEffect,useState } from 'react'; import { AppShell } from '@/components/app-shell'; import { Protected } from '@/components/protected'; import { AppointmentList } from '@/components/appointment-list'; import { api } from '@/lib/api'; import { Appointment } from '@/lib/types';
-export default function AdminAppointments(){const [items,setItems]=useState<Appointment[]>([]);useEffect(()=>{api.adminAppointments().then(setItems).catch(()=>{})},[]);return <Protected roles={['ADMIN']}><AppShell><h2 className="mb-6 text-xl font-bold">Todos os agendamentos</h2><AppointmentList appointments={items}/></AppShell></Protected>;}
+"use client";
+import { useEffect, useState } from "react";
+import { AppShell } from "@/components/app-shell";
+import { Protected } from "@/components/protected";
+import { AppointmentList } from "@/components/appointment-list";
+import { api } from "@/lib/api";
+import { Appointment } from "@/lib/types";
+export default function AdminAppointments() {
+  const [items, setItems] = useState<Appointment[]>([]);
+  useEffect(() => {
+    api
+      .adminAppointments()
+      .then(setItems)
+      .catch(() => {});
+  }, []);
+  return (
+    <Protected roles={["ADMIN"]}>
+      <AppShell>
+        <h2 className="mb-6 text-xl font-bold">Todos os agendamentos</h2>
+        <AppointmentList appointments={items} />
+      </AppShell>
+    </Protected>
+  );
+}

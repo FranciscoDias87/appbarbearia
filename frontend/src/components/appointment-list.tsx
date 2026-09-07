@@ -1,4 +1,65 @@
-'use client';
-import { Appointment, AppointmentStatus } from '@/lib/types'; import { format } from 'date-fns'; import { ptBR } from 'date-fns/locale';
-const labels: Record<AppointmentStatus, string> = { CONFIRMED: 'Confirmado', CANCELLED: 'Cancelado', COMPLETED: 'Concluído', NO_SHOW: 'Não compareceu' };
-export function AppointmentList({ appointments, onStatus }: { appointments: Appointment[]; onStatus?: (id: string, status: AppointmentStatus) => void }) { if (!appointments.length) return <div className="card text-stone-500">Nenhum agendamento encontrado.</div>; return <div className="space-y-3">{appointments.map(a => <article className="card flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" key={a.id}><div><p className="font-semibold">{a.service.name}</p><p className="text-sm text-stone-600">{a.client?.name ?? a.barber.name} · {format(new Date(`${a.date.slice(0, 10)}T${a.startTime}`), "EEE, dd 'de' MMM · HH:mm", { locale: ptBR })}</p></div><div className="flex items-center gap-2"><span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-semibold">{labels[a.status]}</span>{onStatus && a.status === 'CONFIRMED' && <><button className="button-secondary text-sm" onClick={() => onStatus(a.id, 'COMPLETED')}>Concluir</button><button className="button-secondary text-sm" onClick={() => onStatus(a.id, 'NO_SHOW')}>Ausente</button></>}</div></article>)}</div>; }
+"use client";
+import { Appointment, AppointmentStatus } from "@/lib/types";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+const labels: Record<AppointmentStatus, string> = {
+  CONFIRMED: "Confirmado",
+  CANCELLED: "Cancelado",
+  COMPLETED: "Concluído",
+  NO_SHOW: "Não compareceu",
+};
+export function AppointmentList({
+  appointments,
+  onStatus,
+}: {
+  appointments: Appointment[];
+  onStatus?: (id: string, status: AppointmentStatus) => void;
+}) {
+  if (!appointments.length)
+    return (
+      <div className="card text-stone-500">Nenhum agendamento encontrado.</div>
+    );
+  return (
+    <div className="space-y-3">
+      {appointments.map((a) => (
+        <article
+          className="card flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+          key={a.id}
+        >
+          <div>
+            <p className="font-semibold">{a.service.name}</p>
+            <p className="text-sm text-stone-600">
+              {a.client?.name ?? a.barber.name} ·{" "}
+              {format(
+                new Date(`${a.date.slice(0, 10)}T${a.startTime}`),
+                "EEE, dd 'de' MMM · HH:mm",
+                { locale: ptBR },
+              )}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-semibold">
+              {labels[a.status]}
+            </span>
+            {onStatus && a.status === "CONFIRMED" && (
+              <>
+                <button
+                  className="button-secondary text-sm"
+                  onClick={() => onStatus(a.id, "COMPLETED")}
+                >
+                  Concluir
+                </button>
+                <button
+                  className="button-secondary text-sm"
+                  onClick={() => onStatus(a.id, "NO_SHOW")}
+                >
+                  Ausente
+                </button>
+              </>
+            )}
+          </div>
+        </article>
+      ))}
+    </div>
+  );
+}
