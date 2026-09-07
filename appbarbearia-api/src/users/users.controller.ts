@@ -1,4 +1,66 @@
-import { Body, Controller, Get, Patch, UseGuards } from '@nestjs/common'; import { IsOptional, IsString, MinLength } from 'class-validator'; import { PrismaService } from '../prisma.service'; import { JwtAuthGuard } from '../auth/auth.guard'; import { CurrentUser } from '../common/decorators/current-user.decorator'; import * as argon2 from 'argon2';
-class UpdateUserDto { @IsOptional() @IsString() name?:string; @IsOptional() @IsString() phone?:string; }
-class PasswordDto { @IsString() currentPassword!:string; @IsString() @MinLength(8) newPassword!:string; }
-@Controller('users') @UseGuards(JwtAuthGuard) export class UsersController { constructor(private prisma:PrismaService){} @Get('me') async me(@CurrentUser()u:any){return this.prisma.user.findFirst({where:{id:u.id,barbershopId:u.barbershopId},select:{id:true,name:true,email:true,phone:true,avatar:true,role:true,isActive:true,createdAt:true}})} @Patch('me') update(@CurrentUser()u:any,@Body()d:UpdateUserDto){return this.prisma.user.update({where:{id:u.id},data:d,select:{id:true,name:true,email:true,phone:true,avatar:true,role:true}})} @Patch('me/password') async password(@CurrentUser()u:any,@Body()d:PasswordDto){const user=await this.prisma.user.findUniqueOrThrow({where:{id:u.id}}); if(!user.passwordHash||!await argon2.verify(user.passwordHash,d.currentPassword)) throw new Error('Senha atual inválida'); await this.prisma.user.update({where:{id:u.id},data:{passwordHash:await argon2.hash(d.newPassword)}}); return {success:true};} }
+import { Body, Controller, Get, Patch, UseGuards } from "@nestjs/common";
+import { IsOptional, IsString, MinLength } from "class-validator";
+import { PrismaService } from "../prisma.service";
+import { JwtAuthGuard } from "../auth/auth.guard";
+import { CurrentUser } from "../common/decorators/current-user.decorator";
+import * as argon2 from "argon2";
+class UpdateUserDto {
+  @IsOptional() @IsString() name?: string;
+  @IsOptional() @IsString() phone?: string;
+}
+class PasswordDto {
+  @IsString() currentPassword!: string;
+  @IsString() @MinLength(8) newPassword!: string;
+}
+@Controller("users")
+@UseGuards(JwtAuthGuard)
+export class UsersController {
+  constructor(private prisma: PrismaService) {}
+  @Get("me") async me(@CurrentUser() u: any) {
+    return this.prisma.user.findFirst({
+      where: { id: u.id, barbershopId: u.barbershopId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        avatar: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+      },
+    });
+  }
+  @Patch("me") update(@CurrentUser() u: any, @Body() d: UpdateUserDto) {
+    return this.prisma.user.update({
+      where: { id: u.id },
+      data: d,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        avatar: true,
+        role: true,
+      },
+    });
+  }
+  @Patch("me/password") async password(
+    @CurrentUser() u: any,
+    @Body() d: PasswordDto,
+  ) {
+    const user = await this.prisma.user.findUniqueOrThrow({
+      where: { id: u.id },
+    });
+    if (
+      !user.passwordHash ||
+      !(await argon2.verify(user.passwordHash, d.currentPassword))
+    )
+      throw new Error("Senha atual inválida");
+    await this.prisma.user.update({
+      where: { id: u.id },
+      data: { passwordHash: await argon2.hash(d.newPassword) },
+    });
+    return { success: true };
+  }
+}

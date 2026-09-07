@@ -1,2 +1,40 @@
-import {Controller,Get,Query,UseGuards} from '@nestjs/common'; import {Role} from '@prisma/client'; import {PrismaService} from '../prisma.service'; import {JwtAuthGuard} from '../auth/auth.guard'; import {RolesGuard} from '../common/guards/roles.guard'; import {Roles} from '../common/decorators/roles.decorator'; import {CurrentUser} from '../common/decorators/current-user.decorator';
-@Controller('barber/dashboard') @UseGuards(JwtAuthGuard,RolesGuard) @Roles(Role.BARBER,Role.ADMIN) export class DashboardController {constructor(private prisma:PrismaService){} @Get() async dashboard(@CurrentUser()u:any,@Query('date')date?:string){const day=new Date(`${date??new Date().toISOString().slice(0,10)}T00:00:00.000Z`); const where:any={barbershopId:u.barbershopId,date:day}; if(u.role==='BARBER')where.barberId=u.id; const appointments=await this.prisma.appointment.findMany({where,include:{client:{select:{id:true,name:true,phone:true}},barber:{select:{id:true,name:true}},service:true},orderBy:{startTime:'asc'}}); return {date:day.toISOString().slice(0,10),totals:{total:appointments.length,confirmed:appointments.filter(a=>a.status==='CONFIRMED').length,completed:appointments.filter(a=>a.status==='COMPLETED').length,cancelled:appointments.filter(a=>a.status==='CANCELLED').length,noShow:appointments.filter(a=>a.status==='NO_SHOW').length},appointments};}}
+import { Controller, Get, Query, UseGuards } from "@nestjs/common";
+import { Role } from "@prisma/client";
+import { PrismaService } from "../prisma.service";
+import { JwtAuthGuard } from "../auth/auth.guard";
+import { RolesGuard } from "../common/guards/roles.guard";
+import { Roles } from "../common/decorators/roles.decorator";
+import { CurrentUser } from "../common/decorators/current-user.decorator";
+@Controller("barber/dashboard")
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(Role.BARBER, Role.ADMIN)
+export class DashboardController {
+  constructor(private prisma: PrismaService) {}
+  @Get() async dashboard(@CurrentUser() u: any, @Query("date") date?: string) {
+    const day = new Date(
+      `${date ?? new Date().toISOString().slice(0, 10)}T00:00:00.000Z`,
+    );
+    const where: any = { barbershopId: u.barbershopId, date: day };
+    if (u.role === "BARBER") where.barberId = u.id;
+    const appointments = await this.prisma.appointment.findMany({
+      where,
+      include: {
+        client: { select: { id: true, name: true, phone: true } },
+        barber: { select: { id: true, name: true } },
+        service: true,
+      },
+      orderBy: { startTime: "asc" },
+    });
+    return {
+      date: day.toISOString().slice(0, 10),
+      totals: {
+        total: appointments.length,
+        confirmed: appointments.filter((a) => a.status === "CONFIRMED").length,
+        completed: appointments.filter((a) => a.status === "COMPLETED").length,
+        cancelled: appointments.filter((a) => a.status === "CANCELLED").length,
+        noShow: appointments.filter((a) => a.status === "NO_SHOW").length,
+      },
+      appointments,
+    };
+  }
+}
